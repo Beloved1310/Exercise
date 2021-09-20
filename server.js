@@ -99,12 +99,12 @@ app.get("/api/users/:_id/logs", (req,res)=> {
      }else{
        const username = data.username
        console.log({"from": from, "to":to, "limit": limit});
-       Exercise.find({_id}), { date: { $gte: new Date(from), $lte: new Date(to) } } })
+       Exercise.find({_id}, { date: { $gte: new Date(from), $lte: new Date(to) } })
            .select(["id", "description", "duration", "date"]).limit(+limit)
 
        .exec((err, data) =>{
          let customdata = data.map(exer =>{
-           let dateFormatted = new Date (exer.date).toDateString();
+           let dateFormatted = new Date(exer.date).toDateString();
            return {id: exer.id, description: exer.description, duration: exer.duration, date: dateFormatted}
          })
          if(!data){
