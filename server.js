@@ -69,7 +69,7 @@ app.post("/api/users/:_id/exercises", (req,res) => {
     // ok
     let newExercise = new Exercise ({ _id, description, duration, date})
     newExercise.save((err, data)=>{
-      return res.json({ _id: req.params._id, username, date: new Date(date).toDateString(), duration: +duration, description})
+      return res.json({ _id, username, date: new Date(date).toDateString(), duration: +duration, description})
     })
   })
 })
