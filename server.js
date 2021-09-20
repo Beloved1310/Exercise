@@ -59,7 +59,7 @@ app.post("/api/users/:_id/exercises", (req,res) => {
   // const _id = req.params._id
   // console.log(_id)
 
-  Person.findById(req.params._id, (err, data) =>{
+  Person.findById(_id, (err, data) =>{
     console.log(data)
     if(!data){
      return res.json("unknown userId")
@@ -67,9 +67,9 @@ app.post("/api/users/:_id/exercises", (req,res) => {
       const username = data.username
       
     // ok
-    const newExercise = new Exercise ({ _id, description, duration, date})
+    let newExercise = new Exercise ({ _id, description, duration, date})
     newExercise.save((err, data)=>{
-      return res.json({ _id: req.params._id, username, date, duration, description})
+      return res.json({ _id: req.params._id, username, date: new Date(date).toDateString(), duration: +duration, description})
     })
   })
 })
