@@ -56,7 +56,7 @@ newPerson.save((err, data) => {
 app.post("/api/users/:_id/exercises", (req,res) => {
   const { _id, description, duration, date}= req.body;
   // console.log(req.params._id)
-  const _id = req.params._id
+  // const _id = req.params._id
   // console.log(_id)
 
   Person.findById(req.params._id, (err, data) =>{
