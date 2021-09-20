@@ -90,7 +90,7 @@ app.post("/api/users/:_id/exercises", (req,res) => {
 
 app.get("/api/users/:_id/logs", (req,res)=> {
    
-  const _id = req.params._id
+  const {_id }= req.params
   const { from, to, limit } = req.query
 
    Person.findById( _id , (err, data) => {
@@ -99,9 +99,8 @@ app.get("/api/users/:_id/logs", (req,res)=> {
      }else{
        const username = data.username
        console.log({"from": from, "to":to, "limit": limit});
-       Person.findOne({_id: _id})
-       .where({ log: { date: { $gte: new Date(from), $lte: new Date(to) } } })
-           .select({log: {$slice:limit}})
+       Exercise.find({_id}), { date: { $gte: new Date(from), $lte: new Date(to) } } })
+           .select(["id", "description", "duration", "date"]).limit(+limit)
 
        .exec((err, data) =>{
          let customdata = data.map(exer =>{
@@ -110,17 +109,17 @@ app.get("/api/users/:_id/logs", (req,res)=> {
          })
          if(!data){
            res.json({
-             "userId": _id,
+             "_id": _id,
              "username": username,
              "count": 0,
              "log": []
            })
          } else{
            res.json({
-             "userId": _id,
+             "_id": _id,
              "username": username,
              "count": data.length,
-             "log": customdata
+             "log": customdata 
            })
          }
        })
