@@ -88,7 +88,7 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   // const newData = await Exercise.findOne({userId : req.params._id})
   // console.log(newData)
   
-  return res.status(200).json({_id:findUser._id, username: findUser.username,date:data.date, duration: data.duration, description: data.description })
+  return res.status(200).json({findUser,date:data.date, duration: data.duration, description: data.description })
 })
 
 
