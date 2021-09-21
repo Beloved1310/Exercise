@@ -70,10 +70,11 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   
   const { description, duration, date}= req.body;
   const userId = req.params._id
-  const findUser = await Person.find({_id: req.params._id})
+  const findUser = await Person.findById({_id: req.params._id})
 
-  console.log(findUser)
+  // console.log(findUser)
   const username = findUser.username
+  console.log(username)
   // Person.findById(_id, (err, datao) =>{
         
   //       if(!data){
@@ -87,7 +88,7 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   // const newData = await Exercise.findOne({userId : req.params._id})
   // console.log(newData)
   
-  return res.status(200).json({ findUser,date:data.date, duration: data.duration, description: data.description })
+  return res.status(200).json({_id:findUser._id, username: findUser.username,date:data.date, duration: data.duration, description: data.description })
 })
 
 
