@@ -13,16 +13,10 @@ const {Schema} = mongoose;
 mongoose.connect('mongodb+srv://aydemo:aydemo@cluster0.szk1g.mongodb.net/microservices', {useNewUrlParser: true  }, { useUnifiedTopology: true })
 
 const personSchema = new Schema ({username: {type:String, unique:true},
-  log: [
-  {
-    description: String,
-    duration: Number,
-    date: Date
-  }
-] });
+   });
 const Person = mongoose.model('Person', personSchema)
 
-const exerciseSchema = new Schema ({ _id: String, description: String, duration: Number, date: Date})
+const exerciseSchema = new Schema ({ userId: String, description: String, duration: Number, date: Date})
 
 const Exercise = mongoose.model("Exercise", exerciseSchema)
 app.use(cors())
@@ -53,40 +47,51 @@ newPerson.save((err, data) => {
 })
 })
 
-app.post("/api/users/:_id/exercises", (req,res) => {
-  const { _id, description, duration, date}= req.body;
-  // console.log(req.params._id)
-  // const _id = req.params._id
-  // console.log(_id)
-
-  Person.findById(_id, (err, data) =>{
-    console.log(data)
-    if(!data){
-     return res.json("unknown userId")
-    }
-      const username = data.username
+// app.post("/api/users/:_id/exercises", (req,res) => {
+//   const { _id, description, duration, date}= req.body;
+ 
+//   Person.findById(_id, (err, data) =>{
+//     console.log(data)
+//     if(!data){
+//      return res.json("unknown userId")
+//     }
+//       const username = data.username
       
-    // ok
-    let newExercise = new Exercise ({ _id, description, duration, date})
-    newExercise.save((err, data)=>{
-      return res.json({ _id, username, date: new Date(date).toDateString(), duration: +duration, description})
-    })
+   
+//     let newExercise = new Exercise ({ _id, description, duration, date})
+//     newExercise.save((err, data)=>{
+//       return res.json({ _id, username, date: new Date(date).toDateString(), duration: +duration, description})
+//     })
+//   })
+// })
+
+
+app.post("/api/users/:_id/exercises", async (req, res) => {
+  
+  const { description, duration, date}= req.body;
+  const userId = req.params._id
+  const findUser = await Person.find({_id: req.params._id})
+
+  console.log(findUser)
+  const username = findUser.username
+  // Person.findById(_id, (err, datao) =>{
+        
+  //       if(!data){
+  //        return res.json("unknown userId")
+  //       }
+  //         const username = data.username
+  
+  const data = await Exercise.create({
+    userId, description, duration, date
   })
+  // const newData = await Exercise.findOne({userId : req.params._id})
+  // console.log(newData)
+  
+  return res.status(200).json({ findUser,date:data.date, duration: data.duration, description: data.description })
 })
 
-// app.get('/api/users/:_id/logs', (req, res) => {
-//   /*error handling*/
-//   const _id = req.params._id
-//   const { from, to, limit } = req.query
 
-// Person.findOne({ _id: _id })
-//     .where({ log: { date: { $gte: new Date(from), $lte: new Date(to) } } })
-//     .select({log: {$slice:limit}})
-//     .exec(/*callback*/)
 
-// /* response */
-
-// })
 
 app.get("/api/users/:_id/logs", (req,res)=> {
    
