@@ -12,7 +12,7 @@ const mongoose = require('mongoose');
 const {Schema} = mongoose;
 mongoose.connect('mongodb+srv://aydemo:aydemo@cluster0.szk1g.mongodb.net/microservices', {useNewUrlParser: true  }, { useUnifiedTopology: true })
 
-const personSchema = new Schema ({username: {type:String, unique:true},
+const personSchema = new Schema ({username: {type:String, unique:true}, exercise: [{ type: Schema.Types.ObjectId, ref: 'Exercise'}]
    });
 const Person = mongoose.model('Person', personSchema)
 
@@ -85,10 +85,18 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   const data = await Exercise.create({
     userId, description, duration, date
   })
+
+  await Person.findOneAndUpdate(
+    { _id: req.params._id },
+    { $set: { exercise: data } }
+  )
+
+  const u = await Person.findById({ _id: req.params._id}).populate('exercise')
+  console.log(u)
   // const newData = await Exercise.findOne({userId : req.params._id})
   // console.log(newData)
   
-  return res.status(200).json({findUser,date:data.date, duration: data.duration, description: data.description })
+  return res.status(200).json(u)
 })
 
 
