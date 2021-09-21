@@ -16,7 +16,7 @@ const personSchema = new Schema ({username: {type:String, unique:true}, exercise
    });
 const Person = mongoose.model('Person', personSchema)
 
-const exerciseSchema = new Schema ({ userId: String, description: String, duration: Number, date: Date})
+const exerciseSchema = new Schema ({ description: String, duration: Number, date: Date})
 
 const Exercise = mongoose.model("Exercise", exerciseSchema)
 app.use(cors())
@@ -69,7 +69,7 @@ newPerson.save((err, data) => {
 app.post("/api/users/:_id/exercises", async (req, res) => {
   
   const { description, duration, date}= req.body;
-  const userId = req.params._id
+  
   const findUser = await Person.findById({_id: req.params._id})
 
   // console.log(findUser)
@@ -83,7 +83,7 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   //         const username = data.username
   
   const data = await Exercise.create({
-    userId, description, duration, date
+     description, duration, date
   })
 
   await Person.findOneAndUpdate(
