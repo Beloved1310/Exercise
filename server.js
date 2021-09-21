@@ -88,7 +88,7 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
 
   await Person.findOneAndUpdate(
     { _id: req.params._id },
-    { $set: { exercise: data } }
+    { $push: { exercise: data } }
   )
 
   const u = await Person.findById({ _id: req.params._id}).populate('exercise')
