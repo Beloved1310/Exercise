@@ -12,7 +12,10 @@ const mongoose = require('mongoose');
 const {Schema} = mongoose;
 mongoose.connect('mongodb+srv://aydemo:aydemo@cluster0.szk1g.mongodb.net/microservices', {useNewUrlParser: true  }, { useUnifiedTopology: true })
 
-const personSchema = new Schema ({username: {type:String, unique:true}, exercise: [{ type: Schema.Types.ObjectId, ref: 'Exercise'}]
+// const personSchema = new Schema ({username: {type:String, unique:true}, exercise: [{ type: Schema.Types.ObjectId, ref: 'Exercise'}]
+//    });
+
+   const personSchema = new Schema ({username: String 
    });
 const Person = mongoose.model('Person', personSchema)
 
@@ -86,17 +89,21 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
      description, duration, date
   })
 
-  await Person.findOneAndUpdate(
-    { _id: req.params._id },
-    { $push: { exercise: data } }
-  )
+  
 
-  const u = await Person.findById({ _id: req.params._id}).populate('exercise')
-  console.log(u)
+  // {
+  //   username: "fcc_test"
+  //   description: "test",
+  //   duration: 60,
+  //   date: "Mon Jan 01 1990",
+  //   _id: "5fb5853f734231456ccb3b05"
+  // }
+  // const u = await Person.findById({ _id: req.params._id}).populate('exercise')
+  // console.log(u)
   // const newData = await Exercise.findOne({userId : req.params._id})
   // console.log(newData)
   
-  return res.send(u)
+  return res.send({username, description: data.description, duration: data.duration, date: data.date,  _id:findUser._id  })
 })
 
 
