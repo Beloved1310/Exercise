@@ -22,6 +22,10 @@ const Person = mongoose.model('Person', personSchema)
 const exerciseSchema = new Schema ({ description: String, duration: Number, date: Date})
 
 const Exercise = mongoose.model("Exercise", exerciseSchema)
+
+const logSchema = new Schema ({ description: String, duration: Number, date: Date})
+
+const Log = mongoose.model("Log", logSchema)
 app.use(cors())
 
 app.use(express.static('public'))
@@ -103,50 +107,53 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   // const newData = await Exercise.findOne({userId : req.params._id})
   // console.log(newData)
   
-  return res.send({username, description: data.description, duration: data.duration, date: data.date,  _id:findUser._id  })
+  return res.send({username, description: data.description, duration: data.duration, date: data.date.toDateString(),  _id:findUser._id  })
 })
-
-
-
-
 app.get("/api/users/:_id/logs", (req,res)=> {
    
-  const {_id }= req.params
-  const { from, to, limit } = req.query
-
-   Person.findById( _id , (err, data) => {
-     if(!data){
-       res.send("Unknown userId")
-     }else{
-       const username = data.username
-       console.log({"from": from, "to":to, "limit": limit});
-       Exercise.find({_id}, { date: { $gte: new Date(from), $lte: new Date(to) } })
-           .select(["id", "description", "duration", "date"]).limit(+limit)
-
-       .exec((err, data) =>{
-         let customdata = data.map(exer =>{
-           let dateFormatted = new Date(exer.date).toDateString();
-           return {id: exer.id, description: exer.description, duration: exer.duration, date: dateFormatted}
-         })
-         if(!data){
-           res.json({
-             "_id": _id,
-             "username": username,
-             "count": 0,
-             "log": []
-           })
-         } else{
-           res.json({
-             "_id": _id,
-             "username": username,
-             "count": data.length,
-             "log": customdata 
-           })
-         }
-       })
-     }
-   })
+  
 })
+
+
+
+// app.get("/api/users/:_id/logs", (req,res)=> {
+   
+//   const {_id }= req.params
+//   const { from, to, limit } = req.query
+
+//    Person.findById( _id , (err, data) => {
+//      if(!data){
+//        res.send("Unknown userId")
+//      }else{
+//        const username = data.username
+//        console.log({"from": from, "to":to, "limit": limit});
+//        Exercise.find({_id}, { date: { $gte: new Date(from), $lte: new Date(to) } })
+//            .select(["id", "description", "duration", "date"]).limit(+limit)
+
+//        .exec((err, data) =>{
+//          let customdata = data.map(exer =>{
+//            let dateFormatted = new Date(exer.date).toDateString();
+//            return {id: exer.id, description: exer.description, duration: exer.duration, date: dateFormatted}
+//          })
+//          if(!data){
+//            res.json({
+//              "_id": _id,
+//              "username": username,
+//              "count": 0,
+//              "log": []
+//            })
+//          } else{
+//            res.json({
+//              "_id": _id,
+//              "username": username,
+//              "count": data.length,
+//              "log": customdata 
+//            })
+//          }
+//        })
+//      }
+//    })
+// })
 
 
 
