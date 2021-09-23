@@ -15,17 +15,18 @@ mongoose.connect('mongodb+srv://aydemo:aydemo@cluster0.szk1g.mongodb.net/microse
 // const personSchema = new Schema ({username: {type:String, unique:true}, exercise: [{ type: Schema.Types.ObjectId, ref: 'Exercise'}]
 //    });
 
-   const personSchema = new Schema ({username: String 
-   });
-const Person = mongoose.model('Person', personSchema)
-
-const exerciseSchema = new Schema ({ description: String, duration: Number, date: Date})
+  
+const exerciseSchema = new Schema ({userId: String, description: String, duration: Number, date: Date})
+const personSchema = new Schema ({username:{type: String, required:true}, log: [exerciseSchema] 
+});
 
 const Exercise = mongoose.model("Exercise", exerciseSchema)
+const Person = mongoose.model('Person', personSchema)
 
-const logSchema = new Schema ({ description: String, duration: Number, date: Date})
 
-const Log = mongoose.model("Log", logSchema)
+// const logSchema = new Schema ({ description: String, duration: Number, date: Date})
+
+// const Log = mongoose.model("Log", logSchema)
 app.use(cors())
 
 app.use(express.static('public'))
@@ -76,12 +77,39 @@ newPerson.save((err, data) => {
 app.post("/api/users/:_id/exercises", async (req, res) => {
   
   const { description, duration, date}= req.body;
-  
-  const findUser = await Person.findById({_id: req.params._id})
 
-  // console.log(findUser)
-  const username = findUser.username
-  console.log(username)
+  let newExercise = new Exercise({
+    description, duration, date
+  })
+
+  if (newExercise.date === ''){
+    newExercise.date = new Date().toISOString().substring(0,10)
+  }
+
+  Person.findByIdAndUpdate(
+    
+    req.body._id, {$push : {log: newExercise}},
+    {new: true},
+    (error, updatedUser)=>{
+      console.log(updatedUser.log[0].description)
+      if (!error){
+        let responseObject = {}
+        responseObject['username'] = updatedUser.username
+        responseObject['description'] = updatedUser.log[0].description
+        responseObject['duration'] = updatedUser.log[0].duration
+        responseObject['date'] = updatedUser.log[0].date.toDateString()
+        responseObject['_id'] = updatedUser.id
+        res.json(responseObject)
+      }
+
+    }
+  )
+  
+  // const findUser = await Person.findById({_id: req.params._id})
+
+  // // console.log(findUser)
+  // const username = findUser.username
+  // console.log(username)
   // Person.findById(_id, (err, datao) =>{
         
   //       if(!data){
@@ -89,8 +117,8 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   //       }
   //         const username = data.username
   
-  const data = await Exercise.create({
-     description, duration, date
+  // const data = await Exercise.create({
+  //   userId: req.params._id,  description, duration, date
   })
 
   
@@ -107,10 +135,11 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   // const newData = await Exercise.findOne({userId : req.params._id})
   // console.log(newData)
   
-  return res.send({username, description: data.description, duration: data.duration, date: data.date.toDateString(),  _id:findUser._id  })
-})
-app.get("/api/users/:_id/logs", (req,res)=> {
-   
+//   return res.send({username, description: data.description, duration: data.duration, date: data.date.toDateString(),  _id:data._id  })
+// })
+app.get("/api/users/:_id/logs", async(req,res)=> {
+   const u = await Exercise.find({userId: req.params._id})
+   console.log(u)
   
 })
 
