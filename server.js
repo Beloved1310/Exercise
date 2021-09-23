@@ -7,6 +7,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 const mongoose = require("mongoose");
+const { response } = require("express");
 const { Schema } = mongoose;
 mongoose.connect(
   "mongodb+srv://aydemo:aydemo@cluster0.szk1g.mongodb.net/microservices",
@@ -88,9 +89,39 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   );
 });
 
-app.get("/api/users/:_id/logs", async (req, res) => {
-  const u = await Exercise.find({ userId: req.params._id });
-  console.log(u);
+app.get("/api/users/:_id/logs",  (req, res) => {
+ Person.findById(req.params._id, (error, result) =>{
+   if(!error){
+     
+     let responseObject = result
+     if(req.query.from || req.query.to){
+       let fromDate = new Date(0)
+       let toDate = new Date()
+
+       if (req.query.from){
+         fromDate = new Date (req.query.from)
+       }
+       if(req.query.to){
+         toDate = new Date (req.query.to)
+       }
+       fromDate = fromDate.getTime()
+       toDate = toDate.getTime()
+       responseObject.log = responseObject.log.filter((session) =>{
+         let sessionDate = new Date(session.date).getTime()
+         return sessionDate >= fromDate && sessionDate <= toDate
+       })
+      }
+      if (req.query.limit){
+        responseObject.log=responseObject.log.slice(0, req.query.limit)
+      }
+     responseObject = responseObject.toJSON()
+    //  console.log(responseObject)
+      responseObject['count'] = result.log.length
+      res.json({username: responseObject.username, count: responseObject.count, _id: responseObject._id, log: responseObject.log})
+      
+    //  response.json(responseObject)
+   }
+ })
 });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
