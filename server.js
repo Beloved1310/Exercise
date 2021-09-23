@@ -70,7 +70,7 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   }
 
   Person.findByIdAndUpdate(
-    req.body._id,
+    req.params._id,
     { $push: { log: newExercise } },
     { new: true },
     (error, updatedUser) => {
