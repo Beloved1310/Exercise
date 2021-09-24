@@ -132,8 +132,40 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
 app.get('/api/users/:_id/logs', (request, response) => {
   Person.findById(request.params._id, (error, result) => {
     if(!error){
-			result['count'] = result.log.length
-      response.json(result)
+
+      
+/* Count Limit */
+if(request.query.limit){
+  result.log = result.log.slice(0, request.query.limit)
+}
+
+/*Date Filter */
+if(request.query.from || request.query.to){
+  let fromDate = new Date(0)
+  let toDate = new Date()
+  
+  if(request.query.from){
+    fromDate = new Date(request.query.from)
+  }
+  
+  if(request.query.to){
+    toDate = new Date(request.query.to)
+  }
+  
+  result.log = result.log.filter((exerciseItem) =>{
+    let exerciseItemDate = new Date(exerciseItem.date)
+    
+    return exerciseItemDate.getTime() >= fromDate.getTime()
+      && exerciseItemDate.getTime() <= toDate.getTime()
+  })
+  
+}
+
+responseObject = responseObject.toJSON()
+responseObject['count'] = result.log.length
+response.json(result)
+
+		
     }
   })
 })
