@@ -97,59 +97,47 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
 
 
 
-app.get("/api/users/:_id/logs",  (req, res) => {
- console.log('uuuuuu')
- Person.findById(req.params._id, (error, result) =>{
-   if(!error){
+// app.get("/api/users/:_id/logs",  (req, res) => {
+//  Person.findById(req.params._id, (error, result) =>{
+//    if(!error){
     
-     let responseObject = result
-      responseObject = responseObject.toJSON()
+//      let responseObject = result
+//       responseObject = responseObject.toJSON()
     
-      responseObject['count'] = result.log.length
+//       responseObject['count'] = result.log.length
 
       
-      console.log(responseObject)
+//       console.log(responseObject)
     
-    //  if(req.query.from || req.query.to){
-    //    let fromDate = new Date(0)
-    //    let toDate = new Date()
+    
 
-    //    if (req.query.from){
-    //      fromDate = new Date (req.query.from)
-    //    }
-    //    if(req.query.to){
-    //      toDate = new Date (req.query.to)
-    //    }
-    //    fromDate = fromDate.getTime()
-    //    toDate = toDate.getTime()
-    //    responseObject.log = responseObject.log.filter((session) =>{
-    //      let sessionDate = new Date(session.date).getTime()
-    //      return sessionDate >= fromDate && sessionDate <= toDate
-    //    })
-    //   }
-    //   if (req.query.limit){
-    //     responseObject.log=responseObject.log.slice(0, req.query.limit)
-    //   }
-    //  responseObject = responseObject.toJSON()
-    
-      // responseObject['count'] = result.log.length
+//       let new_list = responseObject.log.map(function(obj) {
+//         return {
+//           description: obj.description,
+//           duration: obj.duration,
+//           date: obj.date.toDateString()
+//         }
+//       });
+      
+//       res.json({username: responseObject.username, count: responseObject.count,
+//          _id: responseObject._id, log: new_list})
       
 
-      let new_list = responseObject.log.map(function(obj) {
-        return {
-          description: obj.description,
-          duration: obj.duration,
-          date: obj.date.toDateString()
-        }
-      });
-      
-      res.json({username: responseObject.username, count: responseObject.count,
-         _id: responseObject._id, log: new_list})
-      
-//      response.json('iiiiiii')
-   }
- })
-});
+//    }
+//  })
+// });
+
+
+
+app.get('/api/users/:_id/logs', (request, response) => {
+  Person.findById(request.params._id, (error, result) => {
+    if(!error){
+			result['count'] = result.log.length
+      response.json(result)
+    }
+  })
+})
+
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
