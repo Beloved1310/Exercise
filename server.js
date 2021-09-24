@@ -101,7 +101,7 @@ app.get("/api/users/:_id/logs",  (req, res) => {
  Person.findById(req.params._id, (error, result) =>{
    if(!error){
     
-     let responseObject = result
+      let responseObject = result
       responseObject = responseObject.toJSON()
     
       responseObject['count'] = result.log.length
@@ -117,15 +117,13 @@ app.get("/api/users/:_id/logs",  (req, res) => {
         }
       });
       
-      res.json({username: responseObject.username, count: responseObject.count,
-         _id: responseObject._id, log: new_list})
+      res.json({_id: responseObject._id,username: responseObject.username, count: responseObject.count,
+         log: new_list})
       
 
    }
  })
 });
-
-
 
 // app.get('/api/users/:_id/logs', (request, response) => {
 //   Person.findById(request.params._id, (error, result) => {
