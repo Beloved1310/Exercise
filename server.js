@@ -23,6 +23,7 @@ const exerciseSchema = new Schema({
 });
 const personSchema = new Schema({
   username: { type: String, required: true },
+  count: Number,
   log: [exerciseSchema],
 });
 
@@ -66,6 +67,11 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
     date,
   });
 
+   if (newExercise.date) {
+    newExercise.date = newExercise.date.toDateString
+    console.log(newExercise.date)
+  }
+
   if (newExercise.date === "") {
     newExercise.date = new Date().toISOString().substring(0, 10);
   }
@@ -89,37 +95,58 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   );
 });
 
+
+
 app.get("/api/users/:_id/logs",  (req, res) => {
+ console.log('uuuuuu')
  Person.findById(req.params._id, (error, result) =>{
    if(!error){
-     
+    
      let responseObject = result
-     if(req.query.from || req.query.to){
-       let fromDate = new Date(0)
-       let toDate = new Date()
-
-       if (req.query.from){
-         fromDate = new Date (req.query.from)
-       }
-       if(req.query.to){
-         toDate = new Date (req.query.to)
-       }
-       fromDate = fromDate.getTime()
-       toDate = toDate.getTime()
-       responseObject.log = responseObject.log.filter((session) =>{
-         let sessionDate = new Date(session.date).getTime()
-         return sessionDate >= fromDate && sessionDate <= toDate
-       })
-      }
-      if (req.query.limit){
-        responseObject.log=responseObject.log.slice(0, req.query.limit)
-      }
-     responseObject = responseObject.toJSON()
-    //  console.log(responseObject)
+      responseObject = responseObject.toJSON()
+    
       responseObject['count'] = result.log.length
-      res.json({username: responseObject.username, count: responseObject.count, _id: responseObject._id, log: responseObject.log})
+
       
-    //  response.json(responseObject)
+      console.log(responseObject)
+    
+    //  if(req.query.from || req.query.to){
+    //    let fromDate = new Date(0)
+    //    let toDate = new Date()
+
+    //    if (req.query.from){
+    //      fromDate = new Date (req.query.from)
+    //    }
+    //    if(req.query.to){
+    //      toDate = new Date (req.query.to)
+    //    }
+    //    fromDate = fromDate.getTime()
+    //    toDate = toDate.getTime()
+    //    responseObject.log = responseObject.log.filter((session) =>{
+    //      let sessionDate = new Date(session.date).getTime()
+    //      return sessionDate >= fromDate && sessionDate <= toDate
+    //    })
+    //   }
+    //   if (req.query.limit){
+    //     responseObject.log=responseObject.log.slice(0, req.query.limit)
+    //   }
+    //  responseObject = responseObject.toJSON()
+    
+      // responseObject['count'] = result.log.length
+      
+
+      let new_list = responseObject.log.map(function(obj) {
+        return {
+          description: obj.description,
+          duration: obj.duration,
+          date: obj.date.toDateString()
+        }
+      });
+      
+      res.json({username: responseObject.username, count: responseObject.count,
+         _id: responseObject._id, log: new_list})
+      
+//      response.json('iiiiiii')
    }
  })
 });
