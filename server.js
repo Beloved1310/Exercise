@@ -97,78 +97,76 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
 
 
 
-// app.get("/api/users/:_id/logs",  (req, res) => {
-//  Person.findById(req.params._id, (error, result) =>{
-//    if(!error){
+app.get("/api/users/:_id/logs",  (req, res) => {
+ Person.findById(req.params._id, (error, result) =>{
+   if(!error){
     
-//      let responseObject = result
-//       responseObject = responseObject.toJSON()
+     let responseObject = result
+      responseObject = responseObject.toJSON()
     
-//       responseObject['count'] = result.log.length
+      responseObject['count'] = result.log.length
 
       
-//       console.log(responseObject)
-    
     
 
-//       let new_list = responseObject.log.map(function(obj) {
-//         return {
-//           description: obj.description,
-//           duration: obj.duration,
-//           date: obj.date.toDateString()
-//         }
-//       });
+      let new_list = responseObject.log.map(function(obj) {
+        return {
+          description: obj.description,
+          duration: obj.duration,
+          date: obj.date.toDateString()
+        }
+      });
       
-//       res.json({username: responseObject.username, count: responseObject.count,
-//          _id: responseObject._id, log: new_list})
+      res.json({username: responseObject.username, count: responseObject.count,
+         _id: responseObject._id, log: new_list})
       
 
-//    }
-//  })
-// });
+   }
+ })
+});
 
 
 
-app.get('/api/users/:_id/logs', (request, response) => {
-  Person.findById(request.params._id, (error, result) => {
-    if(!error){
+// app.get('/api/users/:_id/logs', (request, response) => {
+//   Person.findById(request.params._id, (error, result) => {
+//     if(!error){
 
       
-/* Count Limit */
-if(request.query.limit){
-  result.log = result.log.slice(0, request.query.limit)
-}
+// /* Count Limit */
+// if(request.query.limit){
+//   result.log = result.log.slice(0, request.query.limit)
+// }
 
-/*Date Filter */
-if(request.query.from || request.query.to){
-  let fromDate = new Date(0)
-  let toDate = new Date()
+// /*Date Filter */
+// if(request.query.from || request.query.to){
+//   let fromDate = new Date(0)
+//   let toDate = new Date()
   
-  if(request.query.from){
-    fromDate = new Date(request.query.from)
-  }
+//   if(request.query.from){
+//     fromDate = new Date(request.query.from)
+//   }
   
-  if(request.query.to){
-    toDate = new Date(request.query.to)
-  }
+//   if(request.query.to){
+//     toDate = new Date(request.query.to)
+//   }
   
-  result.log = result.log.filter((exerciseItem) =>{
-    let exerciseItemDate = new Date(exerciseItem.date)
+//   result.log = result.log.filter((exerciseItem) =>{
+//     let exerciseItemDate = new Date(exerciseItem.date)
     
-    return exerciseItemDate.getTime() >= fromDate.getTime()
-      && exerciseItemDate.getTime() <= toDate.getTime()
-  })
+//     return exerciseItemDate.getTime() >= fromDate.getTime()
+//       && exerciseItemDate.getTime() <= toDate.getTime()
+//   })
   
-}
+// }
 
-responseObject = responseObject.toJSON()
-responseObject['count'] = result.log.length
-response.json(result)
+// responseObject = responseObject.toJSON()
+// responseObject['count'] = result.log.length
+// response.json(result)
 
 		
-    }
-  })
-})
+//     }
+//   })
+// })
 
 
 const listener = app.listen(process.env.PORT || 3000, () => {
