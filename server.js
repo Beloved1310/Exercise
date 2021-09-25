@@ -116,20 +116,23 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
 
 
 app.get("/api/users/:_id/logs", async (req, res) => {
+
+  const {from, to, limit} = req.query;
+
   const result = await User.findById(req.params._id);
   let responseObject = result;
 
 
-  if(req.query.from || req.query.to){
+  if(from || to || limit){
     let fromDate = new Date(0)
     let toDate = new Date()
     
-    if(req.query.from){
-      fromDate = new Date(req.query.from)
+    if(from){
+      fromDate = new Date(from)
     }
     
-    if(req.query.to){
-      toDate = new Date(req.query.to)
+    if(to){
+      toDate = new Date(to)
     }
     
     result.log = result.log.filter((exerciseItem) =>{
@@ -138,6 +141,10 @@ app.get("/api/users/:_id/logs", async (req, res) => {
       return exerciseItemDate.getTime() >= fromDate.getTime()
         && exerciseItemDate.getTime() <= toDate.getTime()
     })
+
+    if(limit){
+      result.log = result.log.slice(0,limit);
+    }
     
   }
 
