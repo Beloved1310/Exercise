@@ -15,20 +15,24 @@ mongoose.connect(
   { useUnifiedTopology: true }
 );
 
+const userSchema = new Schema({
+  username: { type: String, required: true },
+  log: [{ type: Schema.Types.ObjectId, ref: 'Exercise' }]
+});
+const User = mongoose.model("User", userSchema);
+
 const exerciseSchema = new Schema({
-  userId: String,
+  userId: mongoose.Schema.Types.ObjectId,
   description: String,
   duration: Number,
   date: Date,
 });
-const userSchema = new Schema({
-  username: { type: String, required: true },
-  count: Number,
-  log: [exerciseSchema],
-});
 
 const Exercise = mongoose.model("Exercise", exerciseSchema);
-const User = mongoose.model("User", userSchema);
+
+
+
+
 
 app.use(cors());
 
@@ -59,95 +63,73 @@ app.post("/api/users", (req, res) => {
 });
 
 app.post("/api/users/:_id/exercises", async (req, res) => {
-  const { description, duration, date } = req.body;
+  let { description, duration, date } = req.body;
+  date = date ? new Date(date).toDateString() : new Date().toDateString();
+  
+  const userObject =  await User.findById(req.params._id)
 
-  let newExercise = new Exercise({
+  const newExercise = await Exercise.create({
+    userId: userObject._id,
     description,
     duration,
     date,
   });
 
-  if (newExercise.date) {
-    newExercise.date = newExercise.date.toDateString;
-    console.log(newExercise.date);
-  }
-
-  if (newExercise.date === "") {
-    newExercise.date = new Date().toISOString().substring(0, 10);
-  }
-  const saveExercise = new Exercise({
-    userId: req.params._id,
+  res.send({
+    username: userObject.username,
     description,
     duration,
     date,
-  });
-
-  await saveExercise.save();
-  User.findByIdAndUpdate(
-    req.params._id,
-    { $push: { log: newExercise } },
-    { new: true },
-    (error, updatedUser) => {
-      console.log(updatedUser.log[0].description);
-      if (!error) {
-        let responseObject = {};
-        responseObject["username"] = updatedUser.username;
-        responseObject["description"] = updatedUser.log[0].description;
-        responseObject["duration"] = updatedUser.log[0].duration;
-        responseObject["date"] = updatedUser.log[0].date.toDateString();
-        responseObject["_id"] = updatedUser.id;
-        res.json(responseObject);
-      }
-    }
-  );
+    _id: userObject._id
+  })
 });
 
 app.get("/api/users/:_id/logs", async (req, res) => {
-  const result = await User.findById(req.params._id);
-  let responseObject = result;
+  const result = await User.findById(req.params._id).populate('log');
+  res.send(result)
+  // let responseObject = result;
 
+  // if (req.query.from || req.query.to) {
+  //   let fromDate = new Date(0);
+  //   let toDate = new Date();
 
-  if(req.query.from || req.query.to){
-    let fromDate = new Date(0)
-    let toDate = new Date()
-    
-    if(req.query.from){
-      fromDate = new Date(req.query.from)
-    }
-    
-    if(req.query.to){
-      toDate = new Date(req.query.to)
-    }
-    
-    result.log = result.log.filter((exerciseItem) =>{
-      let exerciseItemDate = new Date(exerciseItem.date)
-      
-      return exerciseItemDate.getTime() >= fromDate.getTime()
-        && exerciseItemDate.getTime() <= toDate.getTime()
-    })
-    
-  }
-  
-  responseObject = responseObject.toJSON();
+  //   if (req.query.from) {
+  //     fromDate = new Date(req.query.from);
+  //   }
 
-  responseObject["count"] = result.log.length;
+  //   if (req.query.to) {
+  //     toDate = new Date(req.query.to);
+  //   }
 
-  let new_list = responseObject.log.map(function (obj) {
-    return {
-      description: obj.description,
-      duration: obj.duration,
-      date: obj.date.toDateString(),
-    };
-  });
+  //   result.log = result.log.filter((exerciseItem) => {
+  //     let exerciseItemDate = new Date(exerciseItem.date);
 
-  res.json({
-    username: responseObject.username,
-    count: responseObject.count,
-    _id: responseObject._id,
-    log: new_list,
-  });
+  //     return (
+  //       exerciseItemDate.getTime() >= fromDate.getTime() &&
+  //       exerciseItemDate.getTime() <= toDate.getTime()
+  //     );
+  //   });
+  // }
+
+  // responseObject = responseObject.toJSON();
+
+  // responseObject["count"] = result.log.length;
+
+  // let new_list = responseObject.log.map(function (obj) {
+  //   return {
+  //     description: obj.description,
+  //     duration: obj.duration,
+  //     date: obj.date.toDateString(),
+  //   };
+  // });
+
+  // res.json({
+  //   username: responseObject.username,
+  //   count: responseObject.count,
+  //   _id: responseObject._id,
+  //   log: new_list,
+  // });
 });
-
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
