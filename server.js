@@ -140,6 +140,10 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     })
     
   }
+
+  if(limit){
+    result = result.slice(0,limit);
+  }
   
   responseObject = responseObject.toJSON();
 
@@ -160,6 +164,10 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     log: new_list,
   });
 });
+
+
+
+
 
 // app.get("/api/users/:_id/logs", async (req, res) => {
 //   const bands = await User.findById(req.params._id).populate('log').exec((err, bands)=>{
