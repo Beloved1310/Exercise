@@ -129,11 +129,11 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     let toDate = new Date()
     
     if(from){
-      fromDate = new Date(from)
+      fromDate = new Date(from).toDateString()
     }
     
     if(to){
-      toDate = new Date(to)
+      toDate = new Date(to).toDateString()
     }
     
     result.log = result.log.filter((exerciseItem) =>{
@@ -159,7 +159,7 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     return {
       description: obj.description,
       duration: obj.duration,
-      date: obj.date,
+      date: obj.date.toDateString(),
     };
   });
 
