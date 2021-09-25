@@ -15,12 +15,6 @@ mongoose.connect(
   { useUnifiedTopology: true }
 );
 
-const userSchema = new Schema({
-  username: { type: String, required: true },
-  log: [{ type: Schema.Types.ObjectId, ref: 'Exercise' }]
-});
-const User = mongoose.model("User", userSchema);
-
 const exerciseSchema = new Schema({
   userId: mongoose.Schema.Types.ObjectId,
   description: String,
@@ -29,6 +23,24 @@ const exerciseSchema = new Schema({
 });
 
 const Exercise = mongoose.model("Exercise", exerciseSchema);
+
+const userSchema = new Schema({
+  username: { type: String, required: true },
+  log: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Exercise' }]
+
+});
+
+// userSchema.virtual('log', {
+//   ref: 'Exercise', // The model to use
+//   localField: '_id', // Find people where `localField`
+//   foreignField: 'userId', // is equal to `foreignField`
+//   // And only get the number of docs
+// });
+
+const User = mongoose.model("User", userSchema);
+
+
+
 
 
 
@@ -75,18 +87,41 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
     date,
   });
 
-  res.send({
-    username: userObject.username,
-    description,
-    duration,
-    date,
-    _id: userObject._id
-  })
+  const updatedUser = await User.findByIdAndUpdate(
+    { _id: req.params._id },
+    { $push: { log: newExercise}  }, { new: true }
+  ).populate('log' )
+
+
+  
+  console.log(updatedUser)
+
+  let responseObject = {};
+        responseObject["username"] = updatedUser.username;
+        responseObject["description"] = updatedUser.log[0].description;
+        responseObject["duration"] = updatedUser.log[0].duration;
+        responseObject["date"] = updatedUser.log[0].date;
+        responseObject["_id"] = updatedUser.id;
+        res.json(responseObject);
+
+  // res.send({
+  //   username: userObject.username,
+  //   description,
+  //   duration,
+  //   date,
+  //   _id: userObject._id
+  // })
 });
 
 app.get("/api/users/:_id/logs", async (req, res) => {
-  const result = await User.findById(req.params._id).populate('log');
-  res.send(result)
+  const bands = await User.findById(req.params._id).populate('log').exec((err, bands)=>{
+    res.send(bands)
+  })
+  
+    
+    // Won't work, foreign field `band` is not selected in the projection
+  
+   
   // let responseObject = result;
 
   // if (req.query.from || req.query.to) {
