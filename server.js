@@ -121,6 +121,7 @@ app.get("/api/users/:_id/logs", async (req, res) => {
 
   const result = await User.findById(req.params._id);
   let responseObject = result;
+  console.log(result)
 
 
   if(from || to || limit){
@@ -158,7 +159,7 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     return {
       description: obj.description,
       duration: obj.duration,
-      date: obj.date.toDateString(),
+      date: obj.date,
     };
   });
 
