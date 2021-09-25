@@ -10,7 +10,7 @@ const mongoose = require("mongoose");
 const { response } = require("express");
 const { Schema } = mongoose;
 mongoose.connect(
-  "mongodb+srv://aydemo:aydemo@cluster0.szk1g.mongodb.net/microservices",
+  process.env.MONGO_URI,
   { useNewUrlParser: true },
   { useUnifiedTopology: true }
 );
@@ -67,15 +67,22 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
     date,
   });
 
-   if (newExercise.date) {
-    newExercise.date = newExercise.date.toDateString
-    console.log(newExercise.date)
+  if (newExercise.date) {
+    newExercise.date = newExercise.date.toDateString;
+    console.log(newExercise.date);
   }
 
   if (newExercise.date === "") {
     newExercise.date = new Date().toISOString().substring(0, 10);
   }
+  const saveExercise = new Exercise({
+    userId: req.params._id,
+    description,
+    duration,
+    date,
+  });
 
+  await saveExercise.save();
   Person.findByIdAndUpdate(
     req.params._id,
     { $push: { log: newExercise } },
@@ -95,76 +102,51 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   );
 });
 
+app.get("/api/users/:_id/logs", async (req, res) => {
+  const result = await Person.findById(req.params._id);
+  let responseObject = result;
 
 
-app.get("/api/users/:_id/logs",  (req, res) => {
- Person.findById(req.params._id, (error, result) =>{
-   if(!error){
+  if(req.query.from || req.query.to){
+    let fromDate = new Date(0)
+    let toDate = new Date()
     
-      let responseObject = result
-      responseObject = responseObject.toJSON()
+    if(req.query.from){
+      fromDate = new Date(req.query.from)
+    }
     
-      responseObject['count'] = result.log.length
-
-      
+    if(req.query.to){
+      toDate = new Date(req.query.to)
+    }
     
-
-      let new_list = responseObject.log.map(function(obj) {
-        return {
-          description: obj.description,
-          duration: obj.duration,
-          date: obj.date.toDateString()
-        }
-      });
+    result.log = result.log.filter((exerciseItem) =>{
+      let exerciseItemDate = new Date(exerciseItem.date)
       
-      res.json({_id: responseObject._id,username: responseObject.username, count: responseObject.count,
-         log: new_list})
-      
+      return exerciseItemDate.getTime() >= fromDate.getTime()
+        && exerciseItemDate.getTime() <= toDate.getTime()
+    })
+    
+  }
+  
+  responseObject = responseObject.toJSON();
 
-   }
- })
+  responseObject["count"] = result.log.length;
+
+  let new_list = responseObject.log.map(function (obj) {
+    return {
+      description: obj.description,
+      duration: obj.duration,
+      date: obj.date.toDateString(),
+    };
+  });
+
+  res.json({
+    username: responseObject.username,
+    count: responseObject.count,
+    _id: responseObject._id,
+    log: new_list,
+  });
 });
-
-// app.get('/api/users/:_id/logs', (request, response) => {
-//   Person.findById(request.params._id, (error, result) => {
-//     if(!error){
-
-      
-// /* Count Limit */
-// if(request.query.limit){
-//   result.log = result.log.slice(0, request.query.limit)
-// }
-
-// /*Date Filter */
-// if(request.query.from || request.query.to){
-//   let fromDate = new Date(0)
-//   let toDate = new Date()
-  
-//   if(request.query.from){
-//     fromDate = new Date(request.query.from)
-//   }
-  
-//   if(request.query.to){
-//     toDate = new Date(request.query.to)
-//   }
-  
-//   result.log = result.log.filter((exerciseItem) =>{
-//     let exerciseItemDate = new Date(exerciseItem.date)
-    
-//     return exerciseItemDate.getTime() >= fromDate.getTime()
-//       && exerciseItemDate.getTime() <= toDate.getTime()
-//   })
-  
-// }
-
-// responseObject = responseObject.toJSON()
-// responseObject['count'] = result.log.length
-// response.json(result)
-
-		
-//     }
-//   })
-// })
 
 
 const listener = app.listen(process.env.PORT || 3000, () => {
