@@ -21,14 +21,14 @@ const exerciseSchema = new Schema({
   duration: Number,
   date: Date,
 });
-const personSchema = new Schema({
+const userSchema = new Schema({
   username: { type: String, required: true },
   count: Number,
   log: [exerciseSchema],
 });
 
 const Exercise = mongoose.model("Exercise", exerciseSchema);
-const Person = mongoose.model("Person", personSchema);
+const User = mongoose.model("User", userSchema);
 
 app.use(cors());
 
@@ -38,7 +38,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api/users", (req, res) => {
-  Person.find({}, (err, data) => {
+  User.find({}, (err, data) => {
     if (!data) {
       res.send("No users");
     } else {
@@ -48,8 +48,8 @@ app.get("/api/users", (req, res) => {
 });
 
 app.post("/api/users", (req, res) => {
-  const newPerson = new Person({ username: req.body.username });
-  newPerson.save((err, data) => {
+  const newUser = new User({ username: req.body.username });
+  newUser.save((err, data) => {
     if (err) {
       res.json("username taken");
     } else {
@@ -83,7 +83,7 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   });
 
   await saveExercise.save();
-  Person.findByIdAndUpdate(
+  User.findByIdAndUpdate(
     req.params._id,
     { $push: { log: newExercise } },
     { new: true },
@@ -103,7 +103,7 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
 });
 
 app.get("/api/users/:_id/logs", async (req, res) => {
-  const result = await Person.findById(req.params._id);
+  const result = await User.findById(req.params._id);
   let responseObject = result;
 
 
