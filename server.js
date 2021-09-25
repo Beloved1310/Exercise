@@ -141,9 +141,7 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     
   }
 
-  if(limit){
-    result = result.slice(0,limit);
-  }
+ 
   
   responseObject = responseObject.toJSON();
 
