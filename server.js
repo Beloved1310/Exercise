@@ -26,8 +26,7 @@ const Exercise = mongoose.model("Exercise", exerciseSchema);
 
 const userSchema = new Schema({
   username: { type: String, required: true },
-  log: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Exercise' }]
-
+  log: [exerciseSchema],
 });
 
 // userSchema.virtual('log', {
@@ -87,22 +86,23 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
     date,
   });
 
-  const updatedUser = await User.findByIdAndUpdate(
-    { _id: req.params._id },
-    { $push: { log: newExercise}  }, { new: true }
-  ).populate('log' )
-
-
-  
-  console.log(updatedUser)
-
-  let responseObject = {};
+  User.findByIdAndUpdate(
+    req.params._id,
+    { $push: { log: newExercise } },
+    { new: true },
+    (error, updatedUser) => {
+      console.log(updatedUser.log[0].description);
+      if (!error) {
+        let responseObject = {};
         responseObject["username"] = updatedUser.username;
         responseObject["description"] = updatedUser.log[0].description;
         responseObject["duration"] = updatedUser.log[0].duration;
-        responseObject["date"] = updatedUser.log[0].date;
+        responseObject["date"] = updatedUser.log[0].date.toDateString();
         responseObject["_id"] = updatedUser.id;
         res.json(responseObject);
+      }
+    }
+  );
 
   // res.send({
   //   username: userObject.username,
@@ -113,14 +113,61 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   // })
 });
 
+
+
 app.get("/api/users/:_id/logs", async (req, res) => {
-  const bands = await User.findById(req.params._id).populate('log').exec((err, bands)=>{
-    res.send(bands)
-  })
+  const result = await User.findById(req.params._id);
+  let responseObject = result;
+
+
+  if(req.query.from || req.query.to){
+    let fromDate = new Date(0)
+    let toDate = new Date()
+    
+    if(req.query.from){
+      fromDate = new Date(req.query.from)
+    }
+    
+    if(req.query.to){
+      toDate = new Date(req.query.to)
+    }
+    
+    result.log = result.log.filter((exerciseItem) =>{
+      let exerciseItemDate = new Date(exerciseItem.date)
+      
+      return exerciseItemDate.getTime() >= fromDate.getTime()
+        && exerciseItemDate.getTime() <= toDate.getTime()
+    })
+    
+  }
+  
+  responseObject = responseObject.toJSON();
+
+  responseObject["count"] = result.log.length;
+
+  let new_list = responseObject.log.map(function (obj) {
+    return {
+      description: obj.description,
+      duration: obj.duration,
+      date: obj.date.toDateString(),
+    };
+  });
+
+  res.json({
+    username: responseObject.username,
+    count: responseObject.count,
+    _id: responseObject._id,
+    log: new_list,
+  });
+});
+
+// app.get("/api/users/:_id/logs", async (req, res) => {
+//   const bands = await User.findById(req.params._id).populate('log').exec((err, bands)=>{
+//     res.send(bands)
+//   })
   
     
-    // Won't work, foreign field `band` is not selected in the projection
-  
+    
    
   // let responseObject = result;
 
@@ -164,7 +211,7 @@ app.get("/api/users/:_id/logs", async (req, res) => {
   //   _id: responseObject._id,
   //   log: new_list,
   // });
-});
+// });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
