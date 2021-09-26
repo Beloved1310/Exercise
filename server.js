@@ -83,7 +83,7 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
     date,
   });
 
- const updatedUser=  await User.findByIdAndUpdate(
+  await User.findByIdAndUpdate(
     req.params._id,
     { $push: { log: newExercise._id} },
     { new: true }
