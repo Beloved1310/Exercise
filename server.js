@@ -88,18 +88,18 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
     { $push: { log: newExercise._id} },
     { new: true }
   )
-  // const updatedUser = await User.findById(req.params._id).populate("log");
-
+  const updatedUser = await User.findById(req.params._id).populate("log");
+  let responseObject = {};
+  responseObject["username"] = updatedUser.username;
+  responseObject["description"] = updatedUser.log[0].description;
+  responseObject["duration"] = updatedUser.log[0].duration;
+  responseObject["date"] = updatedUser.log[0].date.toDateString();
+  responseObject["_id"] = updatedUser.id;
+  res.json(responseObject);
  
  
 
-  res.send({
-    username: userObject.username,
-    description,
-    duration,
-    date,
-    _id: userObject._id
-  })
+  
 });
 
 app.get("/api/users/:_id/logs", async (req, res) => {
