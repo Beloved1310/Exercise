@@ -26,7 +26,8 @@ const Exercise = mongoose.model("Exercise", exerciseSchema);
 
 const userSchema = new Schema({
   username: { type: String, required: true },
-  log: [{ type: Schema.Types.ObjectId, ref: "Exercise" }],
+  log: [exerciseSchema],
+  // log: [{ type: Schema.Types.ObjectId, ref: "Exercise" }],
 });
 
 // userSchema.virtual('log', {
@@ -68,6 +69,7 @@ app.post("/api/users", async (req, res) => {
 app.post("/api/users/:_id/exercises", async (req, res) => {
   let { description, duration, date } = req.body;
   date = date ? new Date(date).toDateString() : new Date().toDateString();
+  console.log(date)
 
   const userObject = await User.findById(req.params._id);
 
@@ -78,18 +80,20 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
     date,
   });
 
-  await User.findByIdAndUpdate(
+ const updatedUser=  await User.findByIdAndUpdate(
     req.params._id,
     { $push: { log: newExercise } },
     { new: true }
   );
-  const updatedUser = await User.findById(req.params._id).populate("log");
+  // const updatedUser = await User.findById(req.params._id).populate("log");
+
+ 
   console.log(updatedUser);
   let responseObject = {};
   responseObject["username"] = updatedUser.username;
   responseObject["description"] = updatedUser.log[0].description;
   responseObject["duration"] = updatedUser.log[0].duration;
-  responseObject["date"] = updatedUser.log[0].date;
+  responseObject["date"] = updatedUser.log[0].date.toDateString();
   responseObject["_id"] = updatedUser.id;
   res.json(responseObject);
 
@@ -105,7 +109,8 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
 app.get("/api/users/:_id/logs", async (req, res) => {
   const { from, to, limit } = req.query;
 
-  const result = await User.findById(req.params._id).populate("log");
+  // const result = await User.findById(req.params._id).populate("log");
+    const result = await User.findById(req.params._id);
   let responseObject = result;
   console.log(result);
 
