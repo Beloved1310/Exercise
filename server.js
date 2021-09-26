@@ -118,11 +118,11 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     let toDate = new Date();
 
     if (from) {
-      fromDate = new Date(from).toDateString();
+      fromDate = new Date(from);
     }
 
     if (to) {
-      toDate = new Date(to).toDateString();
+      toDate = new Date(to);
     }
 
     result.log = result.log.filter((exerciseItem) => {
