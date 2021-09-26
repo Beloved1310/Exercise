@@ -94,7 +94,7 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   responseObject["description"] = updatedUser.log[0].description;
   responseObject["duration"] = updatedUser.log[0].duration;
   responseObject["date"] = updatedUser.log[0].date.toDateString();
-  responseObject["_id"] = updatedUser.id;
+  responseObject["_id"] = updatedUser._id;
   res.json(responseObject);
 
   // res.send({
