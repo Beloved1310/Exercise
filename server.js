@@ -26,7 +26,7 @@ const Exercise = mongoose.model("Exercise", exerciseSchema);
 
 const userSchema = new Schema({
   username: { type: String, required: true },
-  log: [exerciseSchema],
+  log: [{ type: Schema.Types.ObjectId, ref: "Exercise" }],
 });
 
 // userSchema.virtual('log', {
@@ -38,13 +38,6 @@ const userSchema = new Schema({
 
 const User = mongoose.model("User", userSchema);
 
-
-
-
-
-
-
-
 app.use(cors());
 
 app.use(express.static("public"));
@@ -52,32 +45,31 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/views/index.html");
 });
 
-app.get("/api/users", (req, res) => {
-  User.find({}, (err, data) => {
-    if (!data) {
-      res.send("No users");
-    } else {
-      res.json(data);
-    }
-  });
+app.get("/api/users", async (req, res) => {
+  const data = await User.find({});
+
+  if (!data) {
+    res.send("No users");
+  } else {
+    res.json(data);
+  }
 });
 
-app.post("/api/users", (req, res) => {
-  const newUser = new User({ username: req.body.username });
-  newUser.save((err, data) => {
-    if (err) {
-      res.json("username taken");
-    } else {
-      res.json({ username: data.username, _id: data.id });
-    }
-  });
+app.post("/api/users", async (req, res) => {
+  const { username } = req.body;
+  const user = await User.findOne({ username });
+
+  if (user) return res.status(400).send({ error: "User already registered" });
+  const newUser = await User.create({ username });
+
+  res.json({ username: newUser.username, _id: newUser.id });
 });
 
 app.post("/api/users/:_id/exercises", async (req, res) => {
   let { description, duration, date } = req.body;
   date = date ? new Date(date).toDateString() : new Date().toDateString();
-  
-  const userObject =  await User.findById(req.params._id)
+
+  const userObject = await User.findById(req.params._id);
 
   const newExercise = await Exercise.create({
     userId: userObject._id,
@@ -86,23 +78,20 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
     date,
   });
 
-  User.findByIdAndUpdate(
+  await User.findByIdAndUpdate(
     req.params._id,
     { $push: { log: newExercise } },
-    { new: true },
-    (error, updatedUser) => {
-      console.log(updatedUser.log[0].description);
-      if (!error) {
-        let responseObject = {};
-        responseObject["username"] = updatedUser.username;
-        responseObject["description"] = updatedUser.log[0].description;
-        responseObject["duration"] = updatedUser.log[0].duration;
-        responseObject["date"] = updatedUser.log[0].date.toDateString();
-        responseObject["_id"] = updatedUser.id;
-        res.json(responseObject);
-      }
-    }
+    { new: true }
   );
+  const updatedUser = await User.findById(req.params._id).populate("log");
+  console.log(updatedUser);
+  let responseObject = {};
+  responseObject["username"] = updatedUser.username;
+  responseObject["description"] = updatedUser.log[0].description;
+  responseObject["duration"] = updatedUser.log[0].duration;
+  responseObject["date"] = updatedUser.log[0].date;
+  responseObject["_id"] = updatedUser.id;
+  res.json(responseObject);
 
   // res.send({
   //   username: userObject.username,
@@ -113,44 +102,39 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   // })
 });
 
-
-
 app.get("/api/users/:_id/logs", async (req, res) => {
+  const { from, to, limit } = req.query;
 
-  const {from, to, limit} = req.query;
-
-  const result = await User.findById(req.params._id);
+  const result = await User.findById(req.params._id).populate("log");
   let responseObject = result;
-  console.log(result)
+  console.log(result);
 
+  if (from || to || limit) {
+    let fromDate = new Date(0);
+    let toDate = new Date();
 
-  if(from || to || limit){
-    let fromDate = new Date(0)
-    let toDate = new Date()
-    
-    if(from){
-      fromDate = new Date(from).toDateString()
+    if (from) {
+      fromDate = new Date(from).toDateString();
     }
-    
-    if(to){
-      toDate = new Date(to).toDateString()
-    }
-    
-    result.log = result.log.filter((exerciseItem) =>{
-      let exerciseItemDate = new Date(exerciseItem.date)
-      
-      return exerciseItemDate.getTime() >= fromDate.getTime()
-        && exerciseItemDate.getTime() <= toDate.getTime()
-    })
 
-    if(limit){
-      result.log = result.log.slice(0,limit);
+    if (to) {
+      toDate = new Date(to).toDateString();
     }
-    
+
+    result.log = result.log.filter((exerciseItem) => {
+      let exerciseItemDate = new Date(exerciseItem.date);
+
+      return (
+        exerciseItemDate.getTime() >= fromDate.getTime() &&
+        exerciseItemDate.getTime() <= toDate.getTime()
+      );
+    });
+
+    if (limit) {
+      result.log = result.log.slice(0, limit);
+    }
   }
 
- 
-  
   responseObject = responseObject.toJSON();
 
   responseObject["count"] = result.log.length;
@@ -171,60 +155,53 @@ app.get("/api/users/:_id/logs", async (req, res) => {
   });
 });
 
-
-
-
-
 // app.get("/api/users/:_id/logs", async (req, res) => {
 //   const bands = await User.findById(req.params._id).populate('log').exec((err, bands)=>{
 //     res.send(bands)
 //   })
-  
-    
-    
-   
-  // let responseObject = result;
 
-  // if (req.query.from || req.query.to) {
-  //   let fromDate = new Date(0);
-  //   let toDate = new Date();
+// let responseObject = result;
 
-  //   if (req.query.from) {
-  //     fromDate = new Date(req.query.from);
-  //   }
+// if (req.query.from || req.query.to) {
+//   let fromDate = new Date(0);
+//   let toDate = new Date();
 
-  //   if (req.query.to) {
-  //     toDate = new Date(req.query.to);
-  //   }
+//   if (req.query.from) {
+//     fromDate = new Date(req.query.from);
+//   }
 
-  //   result.log = result.log.filter((exerciseItem) => {
-  //     let exerciseItemDate = new Date(exerciseItem.date);
+//   if (req.query.to) {
+//     toDate = new Date(req.query.to);
+//   }
 
-  //     return (
-  //       exerciseItemDate.getTime() >= fromDate.getTime() &&
-  //       exerciseItemDate.getTime() <= toDate.getTime()
-  //     );
-  //   });
-  // }
+//   result.log = result.log.filter((exerciseItem) => {
+//     let exerciseItemDate = new Date(exerciseItem.date);
 
-  // responseObject = responseObject.toJSON();
+//     return (
+//       exerciseItemDate.getTime() >= fromDate.getTime() &&
+//       exerciseItemDate.getTime() <= toDate.getTime()
+//     );
+//   });
+// }
 
-  // responseObject["count"] = result.log.length;
+// responseObject = responseObject.toJSON();
 
-  // let new_list = responseObject.log.map(function (obj) {
-  //   return {
-  //     description: obj.description,
-  //     duration: obj.duration,
-  //     date: obj.date.toDateString(),
-  //   };
-  // });
+// responseObject["count"] = result.log.length;
 
-  // res.json({
-  //   username: responseObject.username,
-  //   count: responseObject.count,
-  //   _id: responseObject._id,
-  //   log: new_list,
-  // });
+// let new_list = responseObject.log.map(function (obj) {
+//   return {
+//     description: obj.description,
+//     duration: obj.duration,
+//     date: obj.date.toDateString(),
+//   };
+// });
+
+// res.json({
+//   username: responseObject.username,
+//   count: responseObject.count,
+//   _id: responseObject._id,
+//   log: new_list,
+// });
 // });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
